@@ -7,6 +7,7 @@ https://github.com/zmathew/django-linguo
 """
 import itertools
 
+from django.apps import apps
 from django.db import models
 from django.db.models import FieldDoesNotExist
 try:
@@ -24,6 +25,7 @@ except ImportError:
     from django.db.models.query import ValuesIterable
     NEW_RELATED_API = True  # Django 1.9
 
+from django.utils.six import string_types
 from django.utils.six import moves
 from django.utils.tree import Node
 try:
@@ -141,6 +143,9 @@ def get_fields_to_translatable_models(model):
                 # In that case the 'related_model' attribute is set to None
                 # so it is necessary to check for this value before trying to
                 # get translatable fields.
+                if isinstance(f.related_model, string_types):
+                    app_label, model_name = f.related_model.split('.')
+                    f.related_model = apps.get_model(app_label=app_label, model_name=model_name)
                 if get_translatable_fields_for_model(f.related_model) is not None:
                     results.append((f.name, f.related_model))
     else:
